@@ -32,6 +32,13 @@ class Process implements Runnable {
          // Feature 1: Store the process priority level
          private int priority;
 
+       // Feature 3: Track process creation and waiting time
+        private long creationTime;
+         private long lastReadyTime;
+         private long totalWaitingTime;
+
+
+
     // Constructor to initialize the process with name, burst time, and time quantum
     
     // Feature 1: Initialize the process priority
@@ -41,6 +48,10 @@ class Process implements Runnable {
         this.timeQuantum = timeQuantum;
         this.remainingTime = burstTime;
         this.priority = priority;
+        // Feature 3: Initialize waiting time tracking
+        this.creationTime = System.currentTimeMillis();
+         this.lastReadyTime = creationTime;
+          this.totalWaitingTime = 0;
     }
 
     // This method will be called when the thread for this process is started
@@ -146,6 +157,24 @@ class Process implements Runnable {
      public int getPriority() {
       return priority;
     }
+
+// Feature 3: Mark when the process returns to the ready queue
+public void markReady() {
+    lastReadyTime = System.currentTimeMillis();
+}
+
+// Feature 3: Calculate the time spent waiting in the ready queue
+public void recordWaitingTime() {
+    totalWaitingTime += System.currentTimeMillis() - lastReadyTime;
+}
+
+// Feature 3: Return the total waiting time
+public long getWaitingTime() {
+    return totalWaitingTime;
+}
+
+
+
     // Check if the process has finished (i.e., no remaining time)
     public boolean isFinished() {
         return remainingTime <= 0;
@@ -236,7 +265,9 @@ public class SchedulerSimulation {
         while (!processQueue.isEmpty()) {
             // Get the next thread from the queue (FIFO)
             Thread currentThread = processQueue.poll(); // Dequeues the next thread
-
+          // Feature 3: Get the process and record its waiting time before execution
+              Process currentProcess = processMap.get(currentThread);
+                currentProcess.recordWaitingTime();
             // Print the current process queue (list of process IDs in the queue)
             System.out.println(Colors.BOLD + Colors.MAGENTA + "┌─ Ready Queue " + "─".repeat(65) + Colors.RESET);
             System.out.print(Colors.MAGENTA + "│ " + Colors.RESET + Colors.BRIGHT_WHITE + "[" + Colors.RESET);
@@ -287,6 +318,12 @@ public class SchedulerSimulation {
                     process.runToCompletion(); // Run until the process completes
                 }
             }
+            // Feature 3: Display the total waiting time when the process finishes
+              if (process.isFinished()) {
+                    System.out.println(Colors.YELLOW + "Total waiting time for "
+                         + process.getName() + ": "
+                          + process.getWaitingTime() + " ms" + Colors.RESET);
+}
         }
 
         // End of the scheduler simulation
@@ -315,6 +352,9 @@ public class SchedulerSimulation {
 
         // Add the thread to the ready queue
         processQueue.add(thread);
+
+         // Feature 3: Record when the process enters the ready queue
+            process.markReady();
 
         // Map the thread to the process, so we can track the process associated with
         // each thread
