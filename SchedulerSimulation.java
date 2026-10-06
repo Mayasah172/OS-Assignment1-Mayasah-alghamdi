@@ -205,6 +205,9 @@ public class SchedulerSimulation {
         // Map to associate each thread with its respective process object
         Map<Thread, Process> processMap = new HashMap<>();
 
+// Feature 3: Keep all original processes for the final table
+LinkedList<Process> allProcesses = new LinkedList<>();
+
         // Print simulation header with elegant formatting
         System.out.println("\n" + Colors.BOLD + Colors.BRIGHT_CYAN +
                 "╔═══════════════════════════════════════════════════════════════════════════════════════╗" +
@@ -243,8 +246,13 @@ public class SchedulerSimulation {
             // time quantum
             // Feature 1
             Process process = new Process("P" + i, burstTime, timeQuantum, priority);
+               // Feature 3: Store the process for the final results table
+                   allProcesses.add(process);
             // Add the process to the ready queue and the map
             addProcessToQueue(process, processQueue, processMap);
+
+
+
         }
 
         // Start of the scheduler simulation
@@ -333,6 +341,27 @@ public class SchedulerSimulation {
         System.out.println(Colors.BOLD + Colors.BRIGHT_GREEN +
                 "╚════════════════════════════════════════════════════════════════════════════════╝" +
                 Colors.RESET + "\n");
+
+
+            // Feature 3: Display final process table
+               System.out.println("\n========== FINAL PROCESS TABLE ==========");
+            System.out.printf("%-15s %-15s %-15s %-18s%n",
+        "Process Name", "Burst Time", "Waiting Time", "Turnaround Time");
+           System.out.println("----------------------------------------------------------------");
+
+        for (Process p : allProcesses) {
+    long waitingTime = p.getWaitingTime();
+    long turnaroundTime = waitingTime + p.getBurstTime();
+
+    System.out.printf("%-15s %-15d %-15d %-18d%n",
+            p.getName(),
+            p.getBurstTime(),
+            waitingTime,
+            turnaroundTime);
+}
+
+
+
 
         // Feature 2: Display the total number of context switches
         System.out.println(Colors.YELLOW + "Total context switches: "
